@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Find My Domain — Gimme.domains</title>
+  <meta name="description" content="Check if Gimme is holding your expired domain, or see when it expires so you can act before it drops." />
+  <link href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&f[]=satoshi@300,400,500,700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+</head>
+<body>
+
+<div class="orbs" aria-hidden="true">
+  <div class="orb orb-1" style="opacity:0.3"></div>
+  <div class="orb orb-3" style="opacity:0.25"></div>
+</div>
+
+<div class="page-content">
+
+  <!-- NAV -->
+  <nav class="nav scrolled" id="nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo" aria-label="Gimme home">
+        <span class="logo-mark" aria-hidden="true"></span>
+        <span class="logo-text">gimme</span><span class="logo-tld">.domains</span>
+      </a>
+      <div class="nav-links">
+        <a href="status.html" class="nav-link" style="color:var(--text)">Find My Domain</a>
+        <a href="alerts.html" class="nav-link">Set Alert</a>
+        <a href="index.html#how" class="nav-link">How It Works</a>
+        <a href="alerts.html" class="btn btn-primary btn-sm">Protect My Domain</a>
+      </div>
+      <button class="nav-hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+    <div class="nav-mobile" id="mobile-menu">
+      <a href="status.html" class="nav-link">Find My Domain</a>
+      <a href="alerts.html" class="nav-link">Set Alert</a>
+      <a href="index.html#how" class="nav-link">How It Works</a>
+      <a href="alerts.html" class="btn btn-primary">Protect My Domain</a>
+    </div>
+  </nav>
+
+  <!-- HERO / SEARCH -->
+  <section class="status-hero">
+    <div class="cyber-grid" style="position:fixed;opacity:0.4"></div>
+    <div class="container container--md">
+      <div class="section-tag" style="margin-bottom:var(--s-4)">Domain lookup</div>
+      <h1 class="section-title" style="margin-bottom:var(--s-5)">Find your domain</h1>
+      <p style="color:var(--text-muted);margin-bottom:var(--s-8);max-width:480px;margin-left:auto;margin-right:auto">
+        Enter any domain to see if we're holding it for you, check its expiry status, or set a free alert.
+      </p>
+
+      <div class="search-wrap">
+        <div class="search-box">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text-faint);flex-shrink:0" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+          <input
+            type="text"
+            id="statusSearch"
+            placeholder="yourdomain.com"
+            autocomplete="off"
+            spellcheck="false"
+            aria-label="Domain to look up"
+          />
+          <button class="btn btn-primary" onclick="handleSearch('statusSearch')">
+            Look Up
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RESULT AREA -->
+  <div class="container container--sm" style="padding-bottom:var(--s-24)">
+
+    <!-- Empty state (no domain in URL) -->
+    <div id="state-empty" class="status-result" style="text-align:center;padding:var(--s-16) 0">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="color:var(--text-faint);margin:0 auto var(--s-5)" aria-hidden="true">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      <p style="color:var(--text-faint);font-family:var(--font-mono);font-size:var(--text-sm)">Enter a domain above to get started.</p>
+    </div>
+
+    <!-- Loading state -->
+    <div id="state-loading" class="status-result" style="display:none">
+      <div class="status-card card card--tactical" style="padding:var(--s-8)">
+        <div class="skeleton" style="width:80px;height:22px;margin-bottom:var(--s-5)"></div>
+        <div class="skeleton" style="width:260px;height:32px;margin-bottom:var(--s-3)"></div>
+        <div class="skeleton" style="width:100%;height:16px;margin-bottom:var(--s-2)"></div>
+        <div class="skeleton" style="width:75%;height:16px;margin-bottom:var(--s-6)"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--s-3);margin-bottom:var(--s-6)">
+          <div class="skeleton" style="height:64px;border-radius:var(--r-md)"></div>
+          <div class="skeleton" style="height:64px;border-radius:var(--r-md)"></div>
+          <div class="skeleton" style="height:64px;border-radius:var(--r-md)"></div>
+          <div class="skeleton" style="height:64px;border-radius:var(--r-md)"></div>
+        </div>
+        <div class="skeleton" style="width:100%;height:44px;border-radius:var(--r-md)"></div>
+      </div>
+      <p style="text-align:center;font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-faint);margin-top:var(--s-4)">
+        <span id="loading-domain"></span>
+      </p>
+    </div>
+
+    <!-- Error state -->
+    <div id="state-error" class="status-result" style="display:none;text-align:center;padding:var(--s-16) 0">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--pink);margin:0 auto var(--s-4)" aria-hidden="true">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <p style="color:var(--text-muted);margin-bottom:var(--s-3)" id="error-msg">Something went wrong looking that up.</p>
+      <button class="btn btn-outline btn-sm" onclick="retryLookup()">Try again</button>
+    </div>
+
+    <!-- CAUGHT state -->
+    <div id="state-caught" class="status-result" style="display:none">
+      <div class="status-card card card--tactical card--glow-green">
+        <div class="sweep-top" style="background:linear-gradient(90deg,transparent,#00ff88,transparent)"></div>
+        <span class="status-badge caught">
+          <svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor" aria-hidden="true"><circle cx="4" cy="4" r="4"/></svg>
+          Caught · In Our Custody
+        </span>
+        <div class="status-domain" id="caught-domain"></div>
+        <h2 class="status-headline">We have your domain. You're safe.</h2>
+        <p class="status-desc" id="caught-desc">
+          Your domain expired and we caught it before squatters could. We're holding it for you — no ransom, no auction. Pay our flat rescue fee and it's yours again within 24 hours.
+        </p>
+
+        <div class="reassurance">
+          <div class="reassurance-item">
+            <svg class="reassurance-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <div>
+              <h4>Your data is safe</h4>
+              <p>We haven't touched your hosting, email, or files. Everything still lives where it was.</p>
+            </div>
+          </div>
+          <div class="reassurance-item">
+            <svg class="reassurance-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <div>
+              <h4>You have 30 days</h4>
+              <p>Your claim window is open. We'll hold it until <strong id="caught-claim-closes"></strong>.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="status-meta">
+          <div class="meta-item">
+            <div class="meta-key">Caught on</div>
+            <div class="meta-val green" id="caught-date">—</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-key">Claim window closes</div>
+            <div class="meta-val amber" id="caught-window">—</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-key">Rescue fee</div>
+            <div class="meta-val" id="caught-price">$249</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-key">Transfer ETA</div>
+            <div class="meta-val cyan">~24 hours</div>
+          </div>
+        </div>
+
+        <a id="caught-cta" href="rescued.html" class="btn btn-primary btn-full btn-lg" style="margin-bottom:var(--s-3)">
+          Reclaim My Domain
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+        <p style="text-align:center;font-size:var(--text-xs);color:var(--text-faint)">
+          Need hands-on help? <a href="rescued.html" style="color:var(--text-muted);text-decoration:underline;text-underline-offset:3px">White-glove rescue ($499)</a> includes DNS, email, and live support.
+        </p>
+      </div>
+    </div>
+
+    <!-- EXPIRING state -->
+    <div id="state-expiring" class="status-result" style="display:none">
+      <div class="status-card card card--tactical">
+        <span class="status-badge expiring">
+          <svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor" aria-hidden="true"><circle cx="4" cy="4" r="4"/></svg>
+          Expiring Soon
+        </span>
+        <div class="status-domain" id="expiring-domain"></div>
+        <h2 class="status-headline">This domain is expiring. Act now.</h2>
+        <p class="status-desc">
+          Your domain expires in <strong id="expiring-days"></strong>. Once it drops, squatters can grab it — and getting it back is expensive and painful. Set a free alert and we'll remind you.
+        </p>
+
+        <div class="status-meta">
+          <div class="meta-item">
+            <div class="meta-key">Expires</div>
+            <div class="meta-val amber" id="expiring-date">—</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-key">Days remaining</div>
+            <div class="meta-val amber" id="expiring-days-meta">—</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-key">Registrar</div>
+            <div class="meta-val" id="expiring-registrar">—</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-key">Status</div>
+            <div class="meta-val amber">Active · Expiring</div>
+          </div>
+        </div>
+
+        <a id="expiring-alert-btn" href="alerts.html" class="btn btn-danger btn-full btn-lg" style="margin-bottom:var(--s-3)">
+          Set Free Expiry Alert Now
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </a>
+        <p style="text-align:center;font-size:var(--text-xs);color:var(--text-faint)">Free. No account needed. We'll email you before it expires.</p>
+      </div>
+    </div>
+
+    <!-- SAFE state -->
+    <div id="state-safe" class="status-result" style="display:none">
+      <div class="status-card card">
+        <span class="status-badge safe">
+          <svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor" aria-hidden="true"><circle cx="4" cy="4" r="4"/></svg>
+          Active · Looks Good
+        </span>
+        <div class="status-domain" id="safe-domain"></div>
+        <h2 class="status-headline">Your domain looks safe — for now.</h2>
+        <p class="status-desc">
+          This domain is active and not expiring for a while. Still, things change — auto-renew fails, cards expire, billing emails get lost. Set a free alert and we'll catch it before you even notice a problem.
+        </p>
+
+        <div class="status-meta">
+          <div class="meta-item">
+            <div class="meta-key">Expires</div>
+            <div class="meta-val cyan" id="safe-date">—</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-key">Days until expiry</div>
+            <div class="meta-val cyan" id="safe-days">—</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-key">Registrar</div>
+            <div class="meta-val" id="safe-registrar">—</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-key">Status</div>
+            <div class="meta-val cyan">Active</div>
+          </div>
+        </div>
+
+        <a id="safe-alert-btn" href="alerts.html" class="btn btn-outline btn-full">
+          Set a Free Alert Anyway
+        </a>
+      </div>
+    </div>
+
+    <!-- UNKNOWN state -->
+    <div id="state-unknown" class="status-result" style="display:none">
+      <div class="status-card card">
+        <span class="status-badge unknown">Unknown</span>
+        <div class="status-domain" id="unknown-domain"></div>
+        <h2 class="status-headline">We couldn't look that up.</h2>
+        <p class="status-desc" id="unknown-desc">
+          We weren't able to check the status of this domain — it may be an unsupported TLD, or our lookup timed out. If you believe we have your domain, email us directly.
+        </p>
+        <div style="display:flex;gap:var(--s-3);flex-wrap:wrap">
+          <a href="mailto:rescue@gimme.domains" class="btn btn-outline">Email Us Directly</a>
+          <button class="btn btn-ghost" onclick="retryLookup()">Try Again</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /container -->
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div>
+          <a href="index.html" class="nav-logo" aria-label="Gimme home">
+            <span class="logo-mark" aria-hidden="true"></span>
+            <span class="logo-text">gimme</span><span class="logo-tld">.domains</span>
+          </a>
+          <p class="footer-tagline">Domain rescue. Not domain squatting.</p>
+        </div>
+        <div class="footer-links">
+          <div class="footer-col">
+            <div class="footer-col-label">Help</div>
+            <a href="mailto:rescue@gimme.domains">Email Support</a>
+            <a href="mailto:rescue@gimme.domains?subject=Hardship%20request">Hardship Program</a>
+            <a href="index.html#how">How It Works</a>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 Gimme.domains</span>
+        <span>Not affiliated with any domain squatting service.</span>
+      </div>
+    </div>
+  </footer>
+
+</div><!-- /page-content -->
+
+<script src="app.js"></script>
+<script>
+(function () {
+  const states = ['empty','loading','error','caught','expiring','safe','unknown'];
+  function show(name) {
+    states.forEach(s => {
+      const el = document.getElementById('state-' + s);
+      if (el) el.style.display = s === name ? '' : 'none';
+    });
+  }
+
+  function fmt(dateStr) {
+    if (!dateStr) return '—';
+    try {
+      return new Date(dateStr).toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' });
+    } catch { return dateStr; }
+  }
+
+  let currentDomain = '';
+
+  function retryLookup() { if (currentDomain) lookup(currentDomain); }
+  window.retryLookup = retryLookup;
+
+  async function lookup(domain) {
+    currentDomain = domain;
+    document.getElementById('loading-domain').textContent = `// querying ${domain}`;
+    document.getElementById('statusSearch').value = domain;
+    show('loading');
+
+    try {
+      const data = await apiGet(`/domain/status?domain=${encodeURIComponent(domain)}`);
+      render(domain, data);
+    } catch (err) {
+      document.getElementById('error-msg').textContent =
+        'We had trouble looking that up. Check the domain and try again.';
+      show('error');
+    }
+  }
+
+  function render(domain, d) {
+    const status = d.status || 'unknown';
+
+    if (status === 'caught') {
+      document.getElementById('caught-domain').textContent = domain;
+      document.getElementById('caught-date').textContent = fmt(d.caught_date);
+      document.getElementById('caught-window').textContent = fmt(d.claim_window_closes);
+      document.getElementById('caught-claim-closes').textContent = fmt(d.claim_window_closes);
+      document.getElementById('caught-price').textContent =
+        d.rescue_price_usd ? `$${d.rescue_price_usd}` : '$249';
+      const cta = document.getElementById('caught-cta');
+      cta.href = `rescued.html?domain=${encodeURIComponent(domain)}`;
+      show('caught');
+
+    } else if (status === 'expiring') {
+      document.getElementById('expiring-domain').textContent = domain;
+      document.getElementById('expiring-date').textContent = fmt(d.expiry_date);
+      const days = d.days_until_expiry;
+      const daysText = days === 1 ? '1 day' : `${days} days`;
+      document.getElementById('expiring-days').textContent = daysText;
+      document.getElementById('expiring-days-meta').textContent = daysText;
+      document.getElementById('expiring-registrar').textContent = d.registrar || 'Unknown';
+      const alertBtn = document.getElementById('expiring-alert-btn');
+      alertBtn.href = `alerts.html?domain=${encodeURIComponent(domain)}`;
+      show('expiring');
+
+    } else if (status === 'safe') {
+      document.getElementById('safe-domain').textContent = domain;
+      document.getElementById('safe-date').textContent = fmt(d.expiry_date);
+      document.getElementById('safe-days').textContent =
+        d.days_until_expiry ? `${d.days_until_expiry} days` : '—';
+      document.getElementById('safe-registrar').textContent = d.registrar || 'Unknown';
+      const alertBtn = document.getElementById('safe-alert-btn');
+      alertBtn.href = `alerts.html?domain=${encodeURIComponent(domain)}`;
+      show('safe');
+
+    } else {
+      document.getElementById('unknown-domain').textContent = domain;
+      show('unknown');
+    }
+  }
+
+  // Boot: check URL param
+  const domain = domainFromUrl();
+  if (domain) {
+    lookup(domain);
+  } else {
+    show('empty');
+  }
+})();
+</script>
+</body>
+</html>

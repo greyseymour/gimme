@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gimme.domains — Domain Rescue. Before the Vultures Land.</title>
+  <meta name="description" content="We catch expiring domains the millisecond they drop and hold them safe for their owners. Flat fee. No auctions. No ransom." />
+  <link href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&f[]=satoshi@300,400,500,700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+</head>
+<body>
+
+<!-- Ambient orbs -->
+<div class="orbs" aria-hidden="true">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <div class="orb orb-4"></div>
+</div>
+
+<div class="page-content">
+
+  <!-- NAV -->
+  <nav class="nav" id="nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo" aria-label="Gimme home">
+        <span class="logo-mark" aria-hidden="true"></span>
+        <span class="logo-text">gimme</span><span class="logo-tld">.domains</span>
+      </a>
+      <div class="nav-links">
+        <a href="status.html" class="nav-link">Find My Domain</a>
+        <a href="alerts.html" class="nav-link">Set Alert</a>
+        <a href="#how" class="nav-link">How It Works</a>
+        <a href="#pricing" class="nav-link">Pricing</a>
+        <a href="alerts.html" class="btn btn-primary btn-sm">Protect My Domain</a>
+      </div>
+      <button class="nav-hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+    <div class="nav-mobile" id="mobile-menu">
+      <a href="status.html" class="nav-link">Find My Domain</a>
+      <a href="alerts.html" class="nav-link">Set Alert</a>
+      <a href="#how" class="nav-link">How It Works</a>
+      <a href="#pricing" class="nav-link">Pricing</a>
+      <a href="alerts.html" class="btn btn-primary">Protect My Domain</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-grid"><div class="cyber-grid"></div></div>
+    <div class="sweep-top"></div>
+    <div class="sweep-bottom" style="bottom: auto; top: 0; opacity: 0.4"></div>
+
+    <div class="container hero-content">
+      <div class="hero-eyebrow fade-up">
+        <span class="eyebrow-dot"></span>
+        Domain rescue · not domain squatting
+      </div>
+
+      <h1 class="hero-title fade-up">
+        <span class="line-1">Your domain slipped.</span>
+        <span class="line-2">We caught it.</span>
+      </h1>
+
+      <p class="hero-sub fade-up">
+        The millisecond a domain expires, bots race to grab it and hold it for ransom.
+        Gimme runs faster — and unlike them, we're on your side.
+        Flat fee. No auctions. Your domain back in 24 hours.
+      </p>
+
+      <div class="search-wrap fade-up">
+        <div class="search-box">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text-faint);flex-shrink:0" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+          <input
+            type="text"
+            id="heroSearch"
+            placeholder="yourdomain.com"
+            autocomplete="off"
+            spellcheck="false"
+            aria-label="Check domain status"
+          />
+          <button class="btn btn-primary" onclick="handleSearch('heroSearch')">
+            Check Status
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+        <p style="font-size:var(--text-xs);color:var(--text-faint);margin-top:var(--s-3);font-family:var(--font-mono)">
+          See if we're holding your domain — or set a free alert before it expires.
+        </p>
+      </div>
+
+      <div class="hero-stats fade-up">
+        <div class="stat">
+          <span class="stat-num cyan">$249</span>
+          <span class="stat-label">flat rescue fee</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+          <span class="stat-num">&lt; 1s</span>
+          <span class="stat-label">catch window</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+          <span class="stat-num green">0</span>
+          <span class="stat-label">ransom fees, ever</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+          <span class="stat-num">30</span>
+          <span class="stat-label">days to claim</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TRUST BAR -->
+  <div class="trust-bar">
+    <div class="container trust-inner">
+      <span class="trust-item">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Not domain squatters
+      </span>
+      <span class="trust-dot"></span>
+      <span class="trust-item">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        Transparent flat pricing
+      </span>
+      <span class="trust-dot"></span>
+      <span class="trust-item">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        We hold it · you claim it
+      </span>
+      <span class="trust-dot"></span>
+      <span class="trust-item">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        30-day claim window
+      </span>
+      <span class="trust-dot"></span>
+      <span class="trust-item">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        Nonprofit & hardship discounts
+      </span>
+    </div>
+  </div>
+
+  <!-- HOW IT WORKS -->
+  <section class="section" id="how">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">The process</div>
+        <h2 class="section-title fade-up">How Gimme Works</h2>
+        <p class="section-sub fade-up">Three steps between "oh no" and "phew."</p>
+      </div>
+
+      <div class="steps-grid">
+        <div class="step-card card card--tactical">
+          <div class="step-num">01</div>
+          <div class="step-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
+            </svg>
+          </div>
+          <h3 class="step-title">We watch the drop</h3>
+          <p class="step-desc">Gimme monitors thousands of expiring domains. When yours hits the 5-day "pending delete" window, our systems lock on and wait for the exact millisecond it becomes available.</p>
+        </div>
+
+        <div class="step-connector">
+          <svg width="32" height="20" viewBox="0 0 32 20" fill="none" aria-hidden="true">
+            <path d="M0 10 Q16 0 32 10" stroke="var(--cyan)" stroke-width="1" stroke-dasharray="3 3" fill="none" opacity="0.4"/>
+          </svg>
+        </div>
+
+        <div class="step-card card card--tactical">
+          <div class="step-num">02</div>
+          <div class="step-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true">
+              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+            </svg>
+          </div>
+          <h3 class="step-title">Caught before the vultures</h3>
+          <p class="step-desc">We use parallel registration across multiple registrar APIs to grab the domain the instant it drops — often within a second. We immediately set up a rescue page at your domain.</p>
+        </div>
+
+        <div class="step-connector">
+          <svg width="32" height="20" viewBox="0 0 32 20" fill="none" aria-hidden="true">
+            <path d="M0 10 Q16 0 32 10" stroke="var(--cyan)" stroke-width="1" stroke-dasharray="3 3" fill="none" opacity="0.4"/>
+          </svg>
+        </div>
+
+        <div class="step-card card card--tactical">
+          <div class="step-num">03</div>
+          <div class="step-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
+          </div>
+          <h3 class="step-title">You get it back</h3>
+          <p class="step-desc">We reach out immediately and you reclaim your domain at a flat fee — no auction, no negotiation, no lawyer. Pay once, and we transfer it back to you within 24 hours.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHO WE PROTECT -->
+  <section class="section section--alt" id="who">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">Who we protect</div>
+        <h2 class="section-title fade-up">Built for real businesses</h2>
+        <p class="section-sub fade-up">The people who hurt most when a domain disappears — and know least about getting it back.</p>
+      </div>
+
+      <div class="protect-grid">
+        <div class="protect-card card">
+          <div class="protect-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path d="M4.5 6.375a4.125 4.125 0 1 1 8.25 0 4.125 4.125 0 0 1-8.25 0ZM14.25 8.625a3.375 3.375 0 1 1 6.75 0 3.375 3.375 0 0 1-6.75 0ZM1.5 19.125a7.125 7.125 0 0 1 14.25 0v.003l-.001.119a.75.75 0 0 1-.363.63 13.067 13.067 0 0 1-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 0 1-.364-.63l-.001-.122ZM17.25 19.128l-.001.144a2.25 2.25 0 0 1-.233.96 10.088 10.088 0 0 0 5.06-1.01.75.75 0 0 0 .42-.643 4.875 4.875 0 0 0-6.957-4.611 8.586 8.586 0 0 1 1.71 5.157v.003Z"/></svg>
+          </div>
+          <h3>Medical &amp; Dental Practices</h3>
+          <p>Docs, dentists, chiropractors, optometrists — your entire patient portal, referral chain, and booking system lives at that domain. Losing it isn't just embarrassing; it's a liability.</p>
+        </div>
+
+        <div class="protect-card card">
+          <div class="protect-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4Z"/></svg>
+          </div>
+          <h3>Sole-Prop Law Firms</h3>
+          <p>Solo attorneys and small group practices. Your domain is your credibility. A squatter's parking page showing up on client searches is a nightmare scenario — and we've seen it happen.</p>
+        </div>
+
+        <div class="protect-card card">
+          <div class="protect-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          </div>
+          <h3>Local Small Businesses</h3>
+          <p>Restaurants, contractors, salons, real estate agents. Years of Google juice, Yelp links, and business cards all pointing at one URL. That domain is irreplaceable — and we protect it.</p>
+        </div>
+
+        <div class="protect-card card">
+          <div class="protect-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          </div>
+          <h3>Anyone Who Just Forgot</h3>
+          <p>Life happens. Auto-renew fails, credit cards expire, emails go to spam. You shouldn't lose a domain you've built a brand on because of a billing oversight. That's where we come in.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section class="section" id="pricing">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">Pricing</div>
+        <h2 class="section-title fade-up">No ransom. Ever.</h2>
+        <p class="section-sub fade-up">Brokers charge thousands. Squatters charge whatever they want. We charge what it costs to run this service, plus a small margin. Full stop.</p>
+      </div>
+
+      <div class="pricing-grid">
+        <!-- Free alerts -->
+        <div class="pricing-card card">
+          <div class="pricing-label">Prevention</div>
+          <div class="pricing-price">
+            <span class="price-num">Free</span>
+          </div>
+          <div class="pricing-name">Expiry Alerts</div>
+          <p class="pricing-desc">We watch your domain and warn you before it expires. The best way to never need a rescue.</p>
+          <ul class="pricing-features">
+            <li><span class="check">✓</span> Alerts at 30, 14, 7 &amp; 1 days out</li>
+            <li><span class="check">✓</span> WHOIS + RDAP monitoring</li>
+            <li><span class="check">✓</span> Direct renewal links included</li>
+            <li><span class="check">✓</span> No account required</li>
+            <li><span class="check">✓</span> Free forever</li>
+          </ul>
+          <a href="alerts.html" class="btn btn-outline btn-full">Set Up Free Alert</a>
+        </div>
+
+        <!-- Self-serve rescue -->
+        <div class="pricing-card card pricing-card--featured card--glow-cyan">
+          <div class="sweep-top"></div>
+          <div class="pricing-badge">Most needed</div>
+          <div class="pricing-label">Recovery · Self-Serve</div>
+          <div class="pricing-price">
+            <span class="price-num">$249</span>
+          </div>
+          <div class="pricing-name">Domain Rescue</div>
+          <p class="pricing-desc">We caught it. Pay once, get your domain transferred back within 24 hours. No nonsense.</p>
+          <ul class="pricing-features">
+            <li><span class="check">✓</span> Domain transferred to you</li>
+            <li><span class="check">✓</span> 30-day claim window</li>
+            <li><span class="check">✓</span> Covers all major TLDs</li>
+            <li><span class="check">✓</span> We reach out to you first</li>
+            <li><span class="check">✓</span> Pay only if you claim it</li>
+          </ul>
+          <a href="status.html" class="btn btn-primary btn-full">Check If We Have Your Domain</a>
+        </div>
+
+        <!-- White-glove -->
+        <div class="pricing-card card">
+          <div class="pricing-label">Recovery · White-Glove</div>
+          <div class="pricing-price">
+            <span class="price-num">$499</span>
+          </div>
+          <div class="pricing-name">Concierge Rescue</div>
+          <p class="pricing-desc">Everything in self-serve, plus we get your site and email back online and walk you through protecting it going forward.</p>
+          <ul class="pricing-features">
+            <li><span class="check">✓</span> Everything in self-serve</li>
+            <li><span class="check">✓</span> DNS re-configuration help</li>
+            <li><span class="check">✓</span> Email delivery restored</li>
+            <li><span class="check">✓</span> 12-month monitoring included</li>
+            <li><span class="check">✓</span> Live support (phone + email)</li>
+          </ul>
+          <a href="status.html" class="btn btn-outline btn-full">Check If We Have Your Domain</a>
+        </div>
+      </div>
+
+      <div style="text-align:center;margin-top:var(--s-8)">
+        <p style="font-size:var(--text-sm);color:var(--text-faint)">
+          Nonprofit, hardship, or community org? We have a reduced-fee program.
+          <a href="mailto:rescue@gimme.domains?subject=Hardship%20request" style="color:var(--text-muted);text-decoration:underline;text-underline-offset:3px">Email us</a> and we'll work something out.
+        </p>
+      </div>
+
+      <!-- Comparison -->
+      <div class="card" style="margin-top:var(--s-12);padding:var(--s-6)">
+        <p style="font-family:var(--font-mono);font-size:var(--text-xs);letter-spacing:0.1em;text-transform:uppercase;color:var(--text-faint);margin-bottom:var(--s-5)">// vs. the alternatives</p>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:var(--s-6);text-align:center">
+          <div>
+            <div style="font-family:var(--font-mono);font-size:var(--text-xl);font-weight:700;color:var(--green)">$249</div>
+            <div style="font-size:var(--text-xs);color:var(--text-muted);margin-top:var(--s-2)">Gimme rescue</div>
+          </div>
+          <div>
+            <div style="font-family:var(--font-mono);font-size:var(--text-xl);font-weight:700;color:var(--amber)">$500–$5k+</div>
+            <div style="font-size:var(--text-xs);color:var(--text-muted);margin-top:var(--s-2)">Domain squatter ransom</div>
+          </div>
+          <div>
+            <div style="font-family:var(--font-mono);font-size:var(--text-xl);font-weight:700;color:var(--pink)">$1,500+</div>
+            <div style="font-size:var(--text-xs);color:var(--text-muted);margin-top:var(--s-2)">UDRP filing fee alone</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA BAND -->
+  <section class="cta-band">
+    <div class="cta-orb cta-orb-1"></div>
+    <div class="cta-orb cta-orb-2"></div>
+    <div class="container" style="position:relative;z-index:1">
+      <h2 class="cta-title fade-up">Don't wait for the drop.</h2>
+      <p class="cta-sub fade-up">Set a free alert now — we'll warn you before your domain becomes our problem to rescue.</p>
+      <div class="cta-actions fade-up">
+        <a href="alerts.html" class="btn btn-primary btn-lg">Set Free Alert</a>
+        <a href="status.html" class="btn btn-ghost btn-lg">Already expired? Check now →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <a href="index.html" class="nav-logo" aria-label="Gimme home">
+            <span class="logo-mark" aria-hidden="true"></span>
+            <span class="logo-text">gimme</span><span class="logo-tld">.domains</span>
+          </a>
+          <p class="footer-tagline">Domain rescue. Not domain squatting.</p>
+        </div>
+        <div class="footer-links">
+          <div class="footer-col">
+            <div class="footer-col-label">Product</div>
+            <a href="alerts.html">Expiry Alerts</a>
+            <a href="status.html">Find My Domain</a>
+            <a href="#how">How It Works</a>
+            <a href="#pricing">Pricing</a>
+          </div>
+          <div class="footer-col">
+            <div class="footer-col-label">Support</div>
+            <a href="mailto:rescue@gimme.domains">Email Us</a>
+            <a href="mailto:rescue@gimme.domains?subject=Hardship%20request">Hardship Program</a>
+            <a href="#">Terms of Service</a>
+            <a href="#">Privacy Policy</a>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 Gimme.domains — We're on your side.</span>
+        <span>Not affiliated with any domain squatting service.</span>
+      </div>
+    </div>
+  </footer>
+
+</div><!-- /page-content -->
+
+<script src="app.js"></script>
+</body>
+</html>

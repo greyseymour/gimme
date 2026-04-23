@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>We Have Your Domain — Gimme.domains</title>
+  <meta name="description" content="Your domain expired and we caught it before squatters could. We're holding it safe. Reclaim it now." />
+  <link href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&f[]=satoshi@300,400,500,700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <style>
+    /* Rescue page is intentionally calmer — panicked users */
+    .orb { opacity: 0.2 !important; }
+    .sweep-top, .sweep-bottom { opacity: 0.35 !important; }
+
+    .timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      margin: var(--s-6) 0;
+      padding-left: var(--s-2);
+    }
+    .timeline-item {
+      display: flex;
+      gap: var(--s-4);
+      padding-bottom: var(--s-5);
+      position: relative;
+    }
+    .timeline-item:not(:last-child)::before {
+      content: "";
+      position: absolute;
+      left: 9px;
+      top: 20px;
+      bottom: 0;
+      width: 1px;
+      background: var(--border);
+    }
+    .timeline-dot {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+      position: relative; z-index: 1;
+    }
+    .timeline-dot.done {
+      border-color: var(--green);
+      background: var(--green-dim);
+    }
+    .timeline-dot.now {
+      border-color: var(--cyan);
+      background: var(--cyan-dim);
+      box-shadow: 0 0 8px rgba(0,212,255,0.3);
+    }
+    .timeline-dot svg { width: 10px; height: 10px; }
+    .timeline-body {}
+    .timeline-label {
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-faint);
+      margin-bottom: 2px;
+    }
+    .timeline-label.done { color: var(--green); }
+    .timeline-label.now { color: var(--cyan); }
+    .timeline-text { font-size: var(--text-sm); color: var(--text-muted); }
+
+    .claim-form { display: none; }
+    .claim-form.visible { display: block; }
+
+    .option-radio { cursor: pointer; }
+    .option-radio input[type="radio"] { display: none; }
+    .option-radio.selected .rescue-option {
+      border-color: rgba(0,212,255,0.4);
+      background: rgba(0,212,255,0.05);
+    }
+
+    .contact-row {
+      display: flex; gap: var(--s-4);
+      padding: var(--s-5) var(--s-6);
+      background: rgba(255,255,255,0.025);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      align-items: center;
+      text-decoration: none;
+      color: inherit;
+      transition: all var(--t-fast);
+    }
+    .contact-row:hover {
+      border-color: var(--border-hi);
+      background: rgba(255,255,255,0.04);
+    }
+    .contact-row-icon {
+      width: 40px; height: 40px; border-radius: var(--r-md);
+      background: var(--cyan-dim); border: 1px solid rgba(0,212,255,0.15);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--cyan); flex-shrink: 0;
+    }
+    .contact-row-body { flex: 1; }
+    .contact-row-body strong { display: block; font-size: var(--text-sm); margin-bottom: 2px; }
+    .contact-row-body span { font-size: var(--text-xs); color: var(--text-faint); }
+    .contact-row-arrow { color: var(--text-faint); }
+  </style>
+</head>
+<body>
+
+<div class="orbs" aria-hidden="true">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-3"></div>
+</div>
+
+<div class="page-content">
+
+  <!-- NAV -->
+  <nav class="nav scrolled" id="nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo" aria-label="Gimme home">
+        <span class="logo-mark" aria-hidden="true"></span>
+        <span class="logo-text">gimme</span><span class="logo-tld">.domains</span>
+      </a>
+      <div class="nav-links">
+        <a href="status.html" class="nav-link">Find My Domain</a>
+        <a href="index.html#how" class="nav-link">How It Works</a>
+        <a href="mailto:rescue@gimme.domains" class="btn btn-outline btn-sm">Email Support</a>
+      </div>
+      <button class="nav-hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+    <div class="nav-mobile" id="mobile-menu">
+      <a href="status.html" class="nav-link">Find My Domain</a>
+      <a href="index.html#how" class="nav-link">How It Works</a>
+      <a href="mailto:rescue@gimme.domains" class="btn btn-outline">Email Support</a>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <section class="rescue-hero">
+    <div class="container container--sm">
+
+      <!-- Top reassurance -->
+      <div class="reassurance" style="margin-bottom:var(--s-8)">
+        <div class="reassurance-item">
+          <svg class="reassurance-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <div>
+            <h4>You haven't been hacked</h4>
+            <p>Your website files, email, and data are completely untouched. This is only a domain registration issue.</p>
+          </div>
+        </div>
+        <div class="reassurance-item">
+          <svg class="reassurance-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          <div>
+            <h4>We're on your side</h4>
+            <p>Gimme is not a squatter. We caught this specifically to return it to you. We only sell to the original owner.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rescue card -->
+      <div class="rescue-card card card--tactical">
+        <div class="sweep-top"></div>
+        <div class="sweep-bottom"></div>
+
+        <div class="rescue-eyebrow" id="rescue-eyebrow">We have your domain</div>
+
+        <h1 class="rescue-title">
+          <span class="rescue-domain" id="rescue-domain-display">yourdomain.com</span>
+          <br/>is in safe hands.
+        </h1>
+
+        <div class="rescue-body">
+          <p>
+            Your domain registration expired and lapsed. We caught it the moment it became available — before anyone else could grab it and hold it for ransom.
+          </p>
+          <p>
+            We're holding it for you with a <strong>30-day claim window</strong>. Pay our flat rescue fee and we'll transfer it back to your registrar within 24 hours. No auctions. No negotiations. No nonsense.
+          </p>
+        </div>
+
+        <!-- What happened timeline -->
+        <div style="margin-bottom:var(--s-6)">
+          <p style="font-family:var(--font-mono);font-size:var(--text-xs);letter-spacing:0.1em;text-transform:uppercase;color:var(--text-faint);margin-bottom:var(--s-4)">// what happened</p>
+          <div class="timeline">
+            <div class="timeline-item">
+              <div class="timeline-dot done">
+                <svg viewBox="0 0 10 10" fill="none" stroke="var(--green)" stroke-width="2" aria-hidden="true"><polyline points="2,5 4,7 8,3"/></svg>
+              </div>
+              <div class="timeline-body">
+                <div class="timeline-label done">Domain expired</div>
+                <div class="timeline-text">Registration lapsed — renewal wasn't processed in time.</div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot done">
+                <svg viewBox="0 0 10 10" fill="none" stroke="var(--green)" stroke-width="2" aria-hidden="true"><polyline points="2,5 4,7 8,3"/></svg>
+              </div>
+              <div class="timeline-body">
+                <div class="timeline-label done">Gimme caught it</div>
+                <div class="timeline-text">Our system registered the domain the moment it became available. Before squatters could.</div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot now">
+                <svg viewBox="0 0 10 10" fill="currentColor" style="color:var(--cyan)" aria-hidden="true"><circle cx="5" cy="5" r="3"/></svg>
+              </div>
+              <div class="timeline-body">
+                <div class="timeline-label now">You're here — claim it</div>
+                <div class="timeline-text">Pay the flat rescue fee. We initiate the transfer immediately.</div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot">
+                <svg viewBox="0 0 10 10" fill="none" stroke="var(--text-faint)" stroke-width="1.5" aria-hidden="true"><polyline points="2,5 4,7 8,3"/></svg>
+              </div>
+              <div class="timeline-body">
+                <div class="timeline-label">Domain transferred back</div>
+                <div class="timeline-text">Yours again within 24 hours. We'll email you every step of the way.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Plan selection -->
+        <p style="font-family:var(--font-mono);font-size:var(--text-xs);letter-spacing:0.1em;text-transform:uppercase;color:var(--text-faint);margin-bottom:var(--s-4)">// choose your rescue</p>
+
+        <div class="rescue-options" id="rescue-options">
+          <label class="option-radio" id="opt-self" onclick="selectPlan('self')">
+            <input type="radio" name="plan" value="self" checked />
+            <div class="rescue-option">
+              <div class="opt-badge">Most popular</div>
+              <div class="opt-price">$249</div>
+              <div class="opt-name">Self-Serve Rescue</div>
+              <div class="opt-desc">We transfer the domain. You handle DNS and email reconnection yourself (or with your IT person).</div>
+              <ul class="opt-features">
+                <li><span class="check" aria-hidden="true">✓</span> Domain transferred within 24h</li>
+                <li><span class="check" aria-hidden="true">✓</span> Auth code + full transfer instructions</li>
+                <li><span class="check" aria-hidden="true">✓</span> Email support</li>
+              </ul>
+            </div>
+          </label>
+
+          <label class="option-radio" id="opt-concierge" onclick="selectPlan('concierge')">
+            <input type="radio" name="plan" value="concierge" />
+            <div class="rescue-option featured">
+              <div class="opt-price">$499</div>
+              <div class="opt-name">Concierge Rescue</div>
+              <div class="opt-desc">We handle everything — transfer, DNS, email — and walk you through getting back online.</div>
+              <ul class="opt-features">
+                <li><span class="check" aria-hidden="true">✓</span> Everything in self-serve</li>
+                <li><span class="check" aria-hidden="true">✓</span> DNS configuration assistance</li>
+                <li><span class="check" aria-hidden="true">✓</span> Email delivery restored</li>
+                <li><span class="check" aria-hidden="true">✓</span> Phone + live chat support</li>
+                <li><span class="check" aria-hidden="true">✓</span> 12-month monitoring included</li>
+              </ul>
+            </div>
+          </label>
+        </div>
+
+        <!-- Claim form -->
+        <div class="claim-form visible" id="claim-form">
+          <div style="display:flex;flex-direction:column;gap:var(--s-4);margin-bottom:var(--s-5)">
+            <div class="form-group" style="margin:0">
+              <label class="form-label" for="claim-email">Your email address</label>
+              <input class="form-input" type="email" id="claim-email" placeholder="you@yourdomain.com" autocomplete="email" required />
+              <p class="form-hint">We'll send transfer instructions and progress updates here.</p>
+              <p class="form-error" id="email-error">Please enter a valid email address.</p>
+            </div>
+            <div class="form-group" style="margin:0">
+              <label class="form-label" for="claim-registrar">Your preferred registrar <span style="color:var(--text-faint);font-weight:400">(optional)</span></label>
+              <input class="form-input" type="text" id="claim-registrar" placeholder="e.g. Namecheap, GoDaddy, Porkbun…" />
+              <p class="form-hint">Where you'd like the domain transferred. We support all major registrars.</p>
+            </div>
+          </div>
+
+          <button class="btn btn-primary btn-full btn-lg" id="claim-btn" onclick="submitClaim()">
+            <span id="claim-btn-text">Reclaim My Domain — <span id="claim-price-label">$249</span></span>
+            <svg id="claim-spinner" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;animation:spin 1s linear infinite" aria-hidden="true"><path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0"/></svg>
+          </button>
+
+          <p style="text-align:center;font-size:var(--text-xs);color:var(--text-faint);margin-top:var(--s-3)">
+            Secure payment via Stripe. You'll be redirected to checkout.
+          </p>
+        </div>
+
+        <!-- Success state (post-payment redirect) -->
+        <div id="claim-success" style="display:none;text-align:center;padding:var(--s-8) 0">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="1.5" style="margin:0 auto var(--s-5)" aria-hidden="true">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <polyline points="9 12 11 14 15 10"/>
+          </svg>
+          <h2 style="font-family:var(--font-display);font-size:var(--text-xl);margin-bottom:var(--s-3)">You're all set.</h2>
+          <p style="color:var(--text-muted);font-size:var(--text-sm);margin-bottom:var(--s-6)">
+            Payment confirmed. We've started the transfer. Check your email — we'll keep you updated at every step.
+          </p>
+          <div id="transfer-status-card" class="card" style="padding:var(--s-5);margin-bottom:var(--s-5)">
+            <div class="meta-key" style="margin-bottom:var(--s-2)">Transfer Status</div>
+            <div class="meta-val cyan" id="transfer-status-text">Initiated</div>
+          </div>
+          <p style="font-size:var(--text-xs);color:var(--text-faint)">
+            Questions? Reply to the confirmation email or <a href="mailto:rescue@gimme.domains" style="color:var(--text-muted);text-decoration:underline;text-underline-offset:3px">contact us directly</a>.
+          </p>
+        </div>
+
+      </div><!-- /rescue-card -->
+
+      <!-- Nonprofit note -->
+      <div class="nonprofit-note" style="margin-top:var(--s-5)">
+        <strong>Nonprofit, community org, or genuine hardship?</strong>
+        We have a reduced-fee program. <a href="mailto:rescue@gimme.domains?subject=Hardship%20rescue%20request">Email us</a> with your situation before purchasing — we'll work something out.
+      </div>
+
+      <!-- Contact options -->
+      <div style="margin-top:var(--s-8)">
+        <p style="font-family:var(--font-mono);font-size:var(--text-xs);letter-spacing:0.1em;text-transform:uppercase;color:var(--text-faint);margin-bottom:var(--s-4)">// prefer to talk to a person?</p>
+        <div style="display:flex;flex-direction:column;gap:var(--s-3)">
+          <a href="mailto:rescue@gimme.domains" class="contact-row">
+            <div class="contact-row-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            </div>
+            <div class="contact-row-body">
+              <strong>Email us</strong>
+              <span>rescue@gimme.domains · typically reply within 2 hours</span>
+            </div>
+            <svg class="contact-row-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div>
+          <a href="index.html" class="nav-logo" aria-label="Gimme home">
+            <span class="logo-mark" aria-hidden="true"></span>
+            <span class="logo-text">gimme</span><span class="logo-tld">.domains</span>
+          </a>
+          <p class="footer-tagline">Domain rescue. Not domain squatting.</p>
+        </div>
+        <div class="footer-links">
+          <div class="footer-col">
+            <div class="footer-col-label">Help</div>
+            <a href="mailto:rescue@gimme.domains">Email Support</a>
+            <a href="mailto:rescue@gimme.domains?subject=Hardship%20request">Hardship Program</a>
+            <a href="index.html#how">How It Works</a>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 Gimme.domains</span>
+        <span>Not affiliated with any domain squatting service.</span>
+      </div>
+    </div>
+  </footer>
+
+</div><!-- /page-content -->
+
+<script src="app.js"></script>
+<style>
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+<script>
+(function () {
+  // Read domain from URL
+  const domain = domainFromUrl();
+  if (domain) {
+    document.getElementById('rescue-domain-display').textContent = domain;
+    document.title = `${domain} — Gimme.domains`;
+  }
+
+  // Check for post-payment success redirect
+  const params = new URLSearchParams(window.location.search);
+  const claimId = params.get('claim_id');
+  const paymentStatus = params.get('payment');
+  if (claimId && paymentStatus === 'success') {
+    showSuccess(claimId);
+  }
+
+  // Plan selection
+  let selectedPlan = 'self';
+  window.selectPlan = function (plan) {
+    selectedPlan = plan;
+    document.getElementById('opt-self').classList.toggle('selected', plan === 'self');
+    document.getElementById('opt-concierge').classList.toggle('selected', plan === 'concierge');
+    document.getElementById('claim-price-label').textContent = plan === 'concierge' ? '$499' : '$249';
+  };
+  selectPlan('self');
+
+  // Submit claim
+  window.submitClaim = async function () {
+    const email = document.getElementById('claim-email').value.trim();
+    const registrar = document.getElementById('claim-registrar').value.trim();
+    const errEl = document.getElementById('email-error');
+    const btn = document.getElementById('claim-btn');
+    const btnText = document.getElementById('claim-btn-text');
+    const spinner = document.getElementById('claim-spinner');
+
+    // Validate
+    errEl.classList.remove('visible');
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      errEl.classList.add('visible');
+      return;
+    }
+
+    btn.disabled = true;
+    btnText.style.display = 'none';
+    spinner.style.display = 'block';
+
+    try {
+      const data = await apiPost('/rescue/claim', {
+        domain: domain || document.getElementById('rescue-domain-display').textContent,
+        email,
+        registrar_handle: registrar,
+        plan: selectedPlan,
+      });
+
+      if (data.payment_url) {
+        window.location.href = data.payment_url;
+      } else {
+        showSuccess(data.claim_id);
+      }
+    } catch (err) {
+      btn.disabled = false;
+      btnText.style.display = '';
+      spinner.style.display = 'none';
+      alert('Something went wrong starting your rescue. Please email rescue@gimme.domains directly.');
+    }
+  };
+
+  async function showSuccess(claimId) {
+    document.getElementById('claim-form').style.display = 'none';
+    document.getElementById('rescue-options').style.display = 'none';
+    document.getElementById('claim-success').style.display = 'block';
+
+    if (claimId) {
+      try {
+        const data = await apiGet(`/rescue/verify?claim_id=${claimId}`);
+        const statusMap = {
+          pending: 'Initiated — preparing transfer',
+          initiated: 'Transfer in progress',
+          complete: 'Complete — check your registrar',
+          failed: 'Issue encountered — we\'ll contact you shortly',
+        };
+        document.getElementById('transfer-status-text').textContent =
+          statusMap[data.transfer_status] || data.message || 'In progress';
+      } catch { /* non-blocking */ }
+    }
+  }
+})();
+</script>
+</body>
+</html>

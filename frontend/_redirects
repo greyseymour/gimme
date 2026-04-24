@@ -1,6 +1,2 @@
 # Cloudflare Pages redirects
-
-# Root goes to homepage
-/  /index.html  200
-
-# SPA-style: any unmatched path → 404 (no catch-all needed for static site)
+# (index.html is served at / automatically — no rule needed)

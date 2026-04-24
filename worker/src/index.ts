@@ -6,7 +6,8 @@ import alertRoutes from './routes/alerts';
 import rescueRoutes from './routes/rescue';
 import { lookupDomain } from './services/rdap';
 import { sendEmail, alertEmail, rescueNotificationEmail } from './services/resend';
-import { placeBackorder } from './services/dynadot';
+import { placeBackorder, setRescueForwarding } from './services/dynadot';
+import { scoreBatch, StubCandidateSource, BACKORDER_THRESHOLD } from './services/prospecting';
 
 export type Bindings = {
   // D1 database
@@ -46,6 +47,38 @@ app.route('/v1/rescue', rescueRoutes);
 // Health check
 app.get('/', (c) => c.json({ status: 'ok', service: 'gimme-worker' }));
 app.get('/v1/health', (c) => c.json({ status: 'ok', ts: new Date().toISOString() }));
+
+// ---------- ADMIN: MANUAL PROSPECT BATCH ----------
+// POST /v1/admin/prospect
+// Body: { domains: ["schwartzdent.com", "millerplumbing.com", ...], backorder: true }
+// Returns scored list and logs high-scorers. If backorder=true, places Dynadot backorders.
+// Use this to feed candidates manually until CZDS/WHOXY is wired up.
+app.post('/v1/admin/prospect', async (c) => {
+  const body = await c.req.json<{ domains: string[]; backorder?: boolean }>();
+  if (!Array.isArray(body.domains) || !body.domains.length) {
+    return c.json({ error: 'domains array required' }, 400);
+  }
+
+  const { scoreBatch: score, BACKORDER_THRESHOLD: threshold } = await import('./services/prospecting');
+  const results = await score(body.domains.slice(0, 200)); // cap at 200 per request
+
+  if (body.backorder && c.env.DYNADOT_API_KEY) {
+    for (const r of results.filter(r => r.score >= threshold)) {
+      const existing = await c.env.DB
+        .prepare('SELECT id FROM caught_domains WHERE domain = ?')
+        .bind(r.domain).first();
+      if (!existing) {
+        const res = await placeBackorder(c.env.DYNADOT_API_KEY, r.domain);
+        await c.env.DB
+          .prepare(`INSERT OR REPLACE INTO prospect_log (domain, score, reason, backorder_placed, created_at) VALUES (?, ?, ?, ?, datetime('now'))`)
+          .bind(r.domain, r.score, r.reason, res.success ? 1 : 0).run();
+        (r as typeof r & { backorder_placed?: boolean }).backorder_placed = res.success;
+      }
+    }
+  }
+
+  return c.json({ count: results.length, threshold, results });
+});
 
 // ---------- CRON: MONITORING SWEEP ----------
 async function runMonitoringSweep(env: Bindings): Promise<void> {
@@ -117,6 +150,9 @@ async function runMonitoringSweep(env: Bindings): Promise<void> {
           placeBackorder(env.DYNADOT_API_KEY, domain).then(async (res) => {
             if (res.success) {
               await markAsCaught(env, domain);
+              // Point the caught domain's DNS to our rescue landing page
+              setRescueForwarding(env.DYNADOT_API_KEY, domain, env.FRONTEND_URL)
+                .catch(() => {/* non-fatal — outreach email still works */});
             }
           }).catch(() => {/* non-fatal */});
         }
@@ -124,6 +160,42 @@ async function runMonitoringSweep(env: Bindings): Promise<void> {
     } catch {
       // Non-fatal per-domain error — continue loop
     }
+  }
+}
+
+// ---------- CRON: PROACTIVE PROSPECTING SWEEP ----------
+// Runs daily. Fetches candidate domains from external source, scores them,
+// and places Dynadot backorders on anything scoring >= BACKORDER_THRESHOLD.
+// Logs every decision to prospect_log so you can tune the scoring.
+async function runProspectingSweep(env: Bindings): Promise<void> {
+  if (!env.DYNADOT_API_KEY) return;
+
+  const source = new StubCandidateSource();
+  // Fetch domains expiring within 30 days — replace StubCandidateSource with
+  // CZDS or WHOXY integration once credentials are available.
+  const candidates = await source.fetchExpiring(30);
+  if (!candidates.length) return;
+
+  const scored = await scoreBatch(candidates);
+  const toBackorder = scored.filter(r => r.score >= BACKORDER_THRESHOLD);
+
+  for (const prospect of toBackorder) {
+    // Skip if we already have a record for this domain
+    const existing = await env.DB
+      .prepare('SELECT id FROM caught_domains WHERE domain = ?')
+      .bind(prospect.domain)
+      .first();
+    if (existing) continue;
+
+    const res = await placeBackorder(env.DYNADOT_API_KEY, prospect.domain);
+    await env.DB
+      .prepare(`
+        INSERT OR REPLACE INTO prospect_log
+          (domain, score, reason, backorder_placed, created_at)
+        VALUES (?, ?, ?, ?, datetime('now'))
+      `)
+      .bind(prospect.domain, prospect.score, prospect.reason, res.success ? 1 : 0)
+      .run();
   }
 }
 
@@ -173,6 +245,10 @@ export default {
   fetch: app.fetch,
 
   async scheduled(event: ScheduledEvent, env: Bindings, ctx: ExecutionContext): Promise<void> {
-    ctx.waitUntil(runMonitoringSweep(env));
+    if (event.cron === '0 */6 * * *') {
+      ctx.waitUntil(runMonitoringSweep(env));
+    } else if (event.cron === '0 9 * * *') {
+      ctx.waitUntil(runProspectingSweep(env));
+    }
   },
 };

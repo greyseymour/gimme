@@ -4,12 +4,13 @@ compatibility_date = "2024-06-20"
 compatibility_flags = ["nodejs_compat"]
 
 [triggers]
-crons = ["0 */6 * * *"]   # every 6 hours — domain monitoring sweep
+crons = ["0 */6 * * *", "0 9 * * *"]   # monitoring sweep (6h) + prospecting sweep (9am daily)
 
 [[d1_databases]]
 binding = "DB"
 database_name = "gimme-db"
 database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+migrations_dir = "src/db/migrations"
 
 [[kv_namespaces]]
 binding = "CACHE"

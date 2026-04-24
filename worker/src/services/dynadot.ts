@@ -71,6 +71,24 @@ export async function initiateTransferOut(
   }
 }
 
+// Point a caught domain's DNS to our rescue landing page via URL forwarding.
+// Called immediately after a successful backorder catch.
+export async function setRescueForwarding(apiKey: string, domain: string, frontendUrl: string): Promise<{ success: boolean }> {
+  try {
+    const rescueUrl = `${frontendUrl}/rescued.html?domain=${encodeURIComponent(domain)}`;
+    const data = await dynadotRequest(apiKey, {
+      command: 'set_forwarding',
+      domain,
+      forward_url: rescueUrl,
+      is_temp: '1', // 302 — we're giving it back, not keeping it
+    }) as { ForwardingResponse?: { ResponseCode?: string } };
+
+    return { success: data?.ForwardingResponse?.ResponseCode === '0' };
+  } catch {
+    return { success: false };
+  }
+}
+
 export async function checkDomainAvailability(apiKey: string, domain: string): Promise<boolean> {
   try {
     const data = await dynadotRequest(apiKey, {

@@ -74,7 +74,7 @@ export function claimConfirmationEmail(domain: string, plan: string, claimId: st
   <p style="font-family:monospace;font-size:12px;color:#00ff88;margin-bottom:24px;letter-spacing:0.1em">GIMME.DOMAINS · CLAIM CONFIRMED</p>
   <h1 style="font-size:24px;font-weight:600;margin:0 0 8px;letter-spacing:-0.02em">Payment received — transfer starting now</h1>
   <p style="color:#aaa;margin:0 0 24px;font-size:15px"><strong style="color:#00d4ff">${domain}</strong> is on its way back to you.</p>
-  <p style="color:#bbb;font-size:14px;line-height:1.7;margin:0 0 24px">We've initiated the domain transfer (${plan === 'concierge' ? 'Concierge Rescue — we'll handle the DNS and email too' : 'Self-Serve Rescue'}). You'll receive the auth/transfer code within a few hours.</p>
+  <p style="color:#bbb;font-size:14px;line-height:1.7;margin:0 0 24px">We've initiated the domain transfer (${plan === 'concierge' ? 'Concierge Rescue \u2014 we\u2019ll handle the DNS and email too' : 'Self-Serve Rescue'}). You'll receive the auth/transfer code within a few hours.</p>
   <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:16px;margin-bottom:28px;font-family:monospace;font-size:13px;color:#666">
     <span>Claim ID: </span><span style="color:#aaa">${claimId}</span>
   </div>

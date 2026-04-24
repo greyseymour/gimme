@@ -36,11 +36,31 @@ domain.get('/status', async (c) => {
     });
   }
 
-  // Try cache
+  // Try KV cache
   const cacheKey = `rdap:${name}`;
   const cached = await c.env.CACHE.get(cacheKey);
   if (cached) {
     return c.json(JSON.parse(cached));
+  }
+
+  // Try our monitoring DB — if we have data < 2 hours old, use it
+  const monitored = await c.env.DB
+    .prepare(`SELECT * FROM domains WHERE domain = ? AND updated_at > datetime('now', '-2 hours')`)
+    .bind(name)
+    .first<{ domain: string; status: string; expiry_date: string | null; registrar: string | null }>();
+
+  if (monitored) {
+    const days = monitored.expiry_date
+      ? Math.floor((new Date(monitored.expiry_date).getTime() - Date.now()) / 86_400_000)
+      : null;
+    return c.json({
+      domain: name,
+      status: monitored.status,
+      expiry_date: monitored.expiry_date,
+      days_until_expiry: days,
+      registrar: monitored.registrar,
+      gimme_holds: false,
+    });
   }
 
   // Live RDAP lookup

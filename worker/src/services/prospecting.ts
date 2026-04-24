@@ -15,8 +15,67 @@ export interface ProspectResult {
   domain: string;
   score: number;
   reason: string;
+  estibot_value?: number | null;
+  contested?: boolean;
   rdap_expiry?: string | null;
   days_until_drop?: number | null;
+}
+
+// ---- Estibot appraisal ----
+// Adds a market-value signal: if Estibot thinks a domain is worth $300+,
+// DropCatch and friends are probably already watching it. We penalise those.
+// Requires ESTIBOT_API_KEY env var. Falls back gracefully if not set.
+export async function enrichWithEstibot(
+  results: ProspectResult[],
+  apiKey: string
+): Promise<ProspectResult[]> {
+  const enriched = await Promise.all(
+    results.map(async (r) => {
+      try {
+        const res = await fetch(
+          `https://api.estibot.com/appraise?key=${encodeURIComponent(apiKey)}&domain=${encodeURIComponent(r.domain)}`,
+          { signal: AbortSignal.timeout(4000) }
+        );
+        if (!res.ok) return r;
+        const data = await res.json() as { appraisal?: number };
+        const value = data?.appraisal ?? null;
+
+        if (value === null) return { ...r, estibot_value: null };
+
+        // DropCatch territory: likely contested, lower our score
+        if (value >= 500) {
+          return {
+            ...r,
+            estibot_value: value,
+            contested: true,
+            score: Math.max(0, r.score - 35),
+            reason: `${r.reason} · Estibot $${value} — likely contested, deprioritised`,
+          };
+        }
+        // Moderate value: slight caution
+        if (value >= 200) {
+          return {
+            ...r,
+            estibot_value: value,
+            contested: false,
+            score: Math.max(0, r.score - 10),
+            reason: `${r.reason} · Estibot $${value} — some competition possible`,
+          };
+        }
+        // Low value: we're almost certainly alone here, small bonus
+        return {
+          ...r,
+          estibot_value: value,
+          contested: false,
+          score: Math.min(100, r.score + 8),
+          reason: `${r.reason} · Estibot $${value} — uncontested territory`,
+        };
+      } catch {
+        return r; // non-fatal — score stands without Estibot
+      }
+    })
+  );
+  return enriched.sort((a, b) => b.score - a.score);
 }
 
 // ---- Scoring heuristics ----
@@ -27,7 +86,7 @@ const SERVICE_WORDS = [
   'plumb','electric','electrician','hvac','heat','cool','roofing','roof',
   'landscap','lawn','mow','tree','pest','exterminator',
   'clean','maid','janitor','housekeep',
-  'medical','clinic','health','doctor','physician','chiro','chiropract','optom','optician','vision',
+  'medical','clinic','health','doctor','physician','chiro','chiropract','optom','optician','vision','eyecare','eye care',
   'realty','realtor','realestate','homes','property','mortgage',
   'repair','service','solutions','associates','partners','group',
   'salon','spa','barber','hair','nail','beauty','esthetician',
@@ -77,14 +136,23 @@ export function scoreDomain(domain: string): { score: number; reason: string } {
   const hyphens = (name.match(/-/g) || []).length;
   if (hyphens > 2) return { score: 10, reason: 'too many hyphens' };
 
-  // Blacklist pure generic keywords
+  // Blacklist pure generic keywords or SEO-bait patterns
   const isGeneric = [...GENERIC_KEYWORDS].some(kw =>
     name === kw || name.startsWith(kw + '-') || name.endsWith('-' + kw)
   );
+  // Penalise domains that start with aggregator/SEO prefixes even if they contain a service word
+  const hasSEOPrefix = /^(best|top|cheap|online|find|get|my|your|the|all|pro|ez|e-|seo|free)/.test(name);
+  const hasPoisonWord = /casino|bonus|nft|crypto|poker|slot|adult|xxx|porn|dating|forex|loan/.test(name);
   const hasServiceWord = SERVICE_WORDS.some(sw => name.includes(sw));
 
   if (isGeneric && !hasServiceWord) {
     return { score: 15, reason: 'generic keyword — squatter bait, skip' };
+  }
+  if (hasSEOPrefix && hasServiceWord) {
+    return { score: 25, reason: 'SEO-bait pattern — not a real business brand' };
+  }
+  if (hasPoisonWord) {
+    return { score: 10, reason: 'poison word — not our market' };
   }
 
   // Score it
@@ -103,7 +171,7 @@ export function scoreDomain(domain: string): { score: number; reason: string } {
   return { score: Math.min(score, 100), reason };
 }
 
-export const BACKORDER_THRESHOLD = 60; // score >= this → we place a backorder
+export const BACKORDER_THRESHOLD = 75; // score >= this → we place a backorder
 
 // ---- Candidate fetching ----
 // Plug in your data source here. Returns domains expiring within `withinDays`.

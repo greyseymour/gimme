@@ -7,7 +7,7 @@ import rescueRoutes from './routes/rescue';
 import { lookupDomain } from './services/rdap';
 import { sendEmail, alertEmail, rescueNotificationEmail } from './services/resend';
 import { placeBackorder, setRescueForwarding } from './services/dynadot';
-import { scoreBatch, StubCandidateSource, BACKORDER_THRESHOLD } from './services/prospecting';
+import { scoreBatch, enrichWithEstibot, StubCandidateSource, BACKORDER_THRESHOLD } from './services/prospecting';
 
 export type Bindings = {
   // D1 database
@@ -19,6 +19,7 @@ export type Bindings = {
   STRIPE_WEBHOOK_SECRET: string;
   RESEND_API_KEY: string;
   DYNADOT_API_KEY: string;
+  ESTIBOT_API_KEY: string;
   // Vars (set in wrangler.toml)
   FRONTEND_URL: string;
   CLAIM_WINDOW_DAYS: string;
@@ -59,8 +60,9 @@ app.post('/v1/admin/prospect', async (c) => {
     return c.json({ error: 'domains array required' }, 400);
   }
 
-  const { scoreBatch: score, BACKORDER_THRESHOLD: threshold } = await import('./services/prospecting');
-  const results = await score(body.domains.slice(0, 200)); // cap at 200 per request
+  const { scoreBatch: score, enrichWithEstibot: enrich, BACKORDER_THRESHOLD: threshold } = await import('./services/prospecting');
+  let results = await score(body.domains.slice(0, 200));
+  if (c.env.ESTIBOT_API_KEY) results = await enrich(results, c.env.ESTIBOT_API_KEY); // cap at 200 per request
 
   if (body.backorder && c.env.DYNADOT_API_KEY) {
     for (const r of results.filter(r => r.score >= threshold)) {
@@ -176,7 +178,8 @@ async function runProspectingSweep(env: Bindings): Promise<void> {
   const candidates = await source.fetchExpiring(30);
   if (!candidates.length) return;
 
-  const scored = await scoreBatch(candidates);
+  let scored = await scoreBatch(candidates);
+  if (env.ESTIBOT_API_KEY) scored = await enrichWithEstibot(scored, env.ESTIBOT_API_KEY);
   const toBackorder = scored.filter(r => r.score >= BACKORDER_THRESHOLD);
 
   for (const prospect of toBackorder) {

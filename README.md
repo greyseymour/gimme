@@ -129,8 +129,8 @@ In Resend, add and verify `gimme.domains` as a sending domain, then set up `resc
 | Plan | Price |
 |------|-------|
 | Expiry Alerts | Free |
-| Self-Serve Rescue | $249 |
-| Concierge Rescue | $499 |
+| Domain Rescue (flat) | $299 |
+| Lifetime Monitoring | Included with rescue |
 
 Nonprofit/hardship: email rescue@gimme.domains.
 

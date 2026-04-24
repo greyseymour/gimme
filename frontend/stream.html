@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Live Pipeline — Gimme.domains</title>
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="stylesheet" href="/style.css">
+<style>
+  /* ---------- STREAM PAGE ---------- */
+  body { overflow: hidden; }
+  .stream-wrap {
+    min-height: 100vh;
+    padding: 72px var(--s-6) var(--s-6);
+    display: flex; flex-direction: column;
+    gap: var(--s-5);
+    max-width: 1440px;
+    margin: 0 auto;
+  }
+
+  /* Header */
+  .stream-header {
+    display: flex; justify-content: space-between; align-items: center;
+    gap: var(--s-5);
+  }
+  .stream-title-block h1 {
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-bottom: 4px;
+  }
+  .stream-sub {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+  .live-pill {
+    display: inline-flex; align-items: center; gap: var(--s-2);
+    padding: 6px 12px;
+    border-radius: var(--r-full);
+    background: var(--green-dim);
+    border: 1px solid rgba(0,255,136,0.3);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--green);
+  }
+  .live-pill::before {
+    content: "";
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 10px var(--green);
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+
+  /* Main 3-column pipeline */
+  .pipeline {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: var(--s-4);
+    flex: 1;
+    min-height: 0;
+  }
+  .col {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: var(--glass-border);
+    border-radius: var(--r-lg);
+    padding: var(--s-5);
+    display: flex; flex-direction: column;
+    min-height: 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .col::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+  .col--feed::before { background: linear-gradient(90deg, transparent, var(--cyan), transparent); }
+  .col--filter::before { background: linear-gradient(90deg, transparent, #b06aff, transparent); }
+  .col--caught::before { background: linear-gradient(90deg, transparent, var(--green), transparent); }
+
+  .col-header {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-bottom: var(--s-4);
+    padding-bottom: var(--s-3);
+    border-bottom: 1px solid var(--border);
+  }
+  .col-label {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .col--feed .col-label { color: var(--cyan); }
+  .col--filter .col-label { color: #b06aff; }
+  .col--caught .col-label { color: var(--green); }
+  .col-label::before { content: "// "; opacity: 0.5; }
+
+  .col-counter {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--text-faint);
+  }
+  .col-counter span { color: var(--text); font-weight: 600; }
+
+  .col-body {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+  }
+  .col-scroll {
+    display: flex; flex-direction: column;
+    gap: var(--s-2);
+  }
+
+  /* Feed cards */
+  .feed-card {
+    padding: var(--s-3) var(--s-4);
+    background: rgba(255,255,255,0.025);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    animation: slideIn 400ms var(--ease-out);
+  }
+  .feed-domain {
+    color: var(--text);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .feed-meta {
+    display: flex; justify-content: space-between;
+    color: var(--text-faint);
+    font-size: 0.65rem;
+    letter-spacing: 0.05em;
+  }
+  .feed-meta span.reg { color: var(--text-muted); }
+  .feed-meta span.days.urgent { color: var(--amber); }
+  .feed-meta span.days.critical { color: var(--pink); }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Filter cards (scoring visualization) */
+  .filter-card {
+    padding: var(--s-4);
+    background: rgba(176, 106, 255, 0.04);
+    border: 1px solid rgba(176, 106, 255, 0.15);
+    border-radius: var(--r-md);
+    animation: slideIn 400ms var(--ease-out);
+  }
+  .filter-card.kept {
+    background: rgba(0, 255, 136, 0.05);
+    border-color: rgba(0, 255, 136, 0.25);
+  }
+  .filter-card.rejected {
+    background: rgba(255, 107, 107, 0.03);
+    border-color: rgba(255, 107, 107, 0.15);
+    opacity: 0.55;
+  }
+  .filter-top {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-bottom: var(--s-2);
+  }
+  .filter-domain {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--text);
+  }
+  .filter-score {
+    font-family: var(--font-mono);
+    font-size: var(--text-base);
+    font-weight: 700;
+  }
+  .filter-score.kept { color: var(--green); }
+  .filter-score.rejected { color: rgba(255,107,107,0.8); }
+  .filter-signals {
+    display: flex; flex-wrap: wrap; gap: 4px;
+    margin-bottom: var(--s-2);
+  }
+  .signal-chip {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    padding: 2px 7px;
+    border-radius: var(--r-full);
+    letter-spacing: 0.04em;
+    border: 1px solid;
+  }
+  .signal-chip.pos { color: var(--green); border-color: rgba(0,255,136,0.25); background: rgba(0,255,136,0.05); }
+  .signal-chip.neg { color: rgba(255,107,107,0.8); border-color: rgba(255,107,107,0.2); background: rgba(255,107,107,0.04); }
+  .signal-chip.neu { color: var(--text-faint); border-color: var(--border); }
+  .filter-bar {
+    height: 3px;
+    background: rgba(255,255,255,0.05);
+    border-radius: var(--r-full);
+    overflow: hidden;
+  }
+  .filter-bar-fill {
+    height: 100%;
+    transition: width 600ms var(--ease-out);
+    border-radius: var(--r-full);
+  }
+  .filter-bar-fill.kept { background: linear-gradient(90deg, #00d4ff, #00ff88); box-shadow: 0 0 10px rgba(0,255,136,0.4); }
+  .filter-bar-fill.rejected { background: rgba(255,107,107,0.4); }
+  .filter-verdict {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: var(--s-2);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .verdict-kept { color: var(--green); }
+  .verdict-rejected { color: rgba(255,107,107,0.7); }
+  .threshold-note { color: var(--text-faint); }
+
+  /* Caught cards */
+  .caught-card {
+    padding: var(--s-4);
+    background: rgba(0, 255, 136, 0.04);
+    border: 1px solid rgba(0, 255, 136, 0.2);
+    border-radius: var(--r-md);
+    animation: slideIn 500ms var(--ease-out);
+    position: relative;
+  }
+  .caught-top {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-bottom: var(--s-2);
+  }
+  .caught-domain {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--green);
+  }
+  .caught-badge {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--green);
+    padding: 2px 8px;
+    background: rgba(0,255,136,0.1);
+    border-radius: var(--r-full);
+  }
+  .caught-meta {
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: var(--s-2);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+  }
+  .caught-meta div {
+    color: var(--text-faint);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .caught-meta strong {
+    display: block;
+    color: var(--text);
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: var(--text-xs);
+    margin-top: 2px;
+  }
+
+  /* Funnel strip (bottom) */
+  .funnel {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr) auto;
+    gap: 0;
+    padding: var(--s-5);
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: var(--glass-border);
+    border-radius: var(--r-lg);
+    align-items: center;
+  }
+  .funnel-step {
+    text-align: center;
+    padding: 0 var(--s-3);
+    position: relative;
+  }
+  .funnel-num {
+    font-family: var(--font-mono);
+    font-size: var(--text-xl);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .funnel-num.cyan { color: var(--cyan); }
+  .funnel-num.violet { color: #b06aff; }
+  .funnel-num.green { color: var(--green); }
+  .funnel-num.amber { color: var(--amber); }
+  .funnel-num.pink { color: var(--pink); }
+  .funnel-label {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+  .funnel-arrow {
+    color: var(--border-hi);
+    opacity: 0.6;
+    font-family: var(--font-mono);
+  }
+  .funnel-rate {
+    text-align: right;
+    padding-left: var(--s-5);
+    border-left: 1px solid var(--border);
+  }
+  .funnel-rate .rate-num {
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    font-weight: 700;
+    color: var(--green);
+    line-height: 1;
+  }
+  .funnel-rate .rate-label {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-top: 4px;
+  }
+
+  /* Fade gradient at column bottoms for continuous stream feel */
+  .col-body::after {
+    content: "";
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 48px;
+    background: linear-gradient(to bottom, transparent, rgba(5,6,8,0.85));
+    pointer-events: none;
+  }
+
+  @media (max-width: 1100px) {
+    .pipeline { grid-template-columns: 1fr; grid-template-rows: repeat(3, minmax(200px, 1fr)); }
+    .funnel { grid-template-columns: repeat(3, 1fr); gap: var(--s-3); }
+    .funnel-arrow { display: none; }
+    .funnel-rate { grid-column: 1 / -1; border-left: none; border-top: 1px solid var(--border); padding: var(--s-3) 0 0; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<div class="orbs">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <div class="orb orb-4"></div>
+</div>
+
+<div class="cyber-grid"></div>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="nav-logo">
+      <span class="logo-mark"></span>
+      <span class="logo-text">gimme</span><span class="logo-tld">.domains</span>
+    </a>
+    <div class="nav-links">
+      <a href="/" class="nav-link">Home</a>
+      <a href="/alerts.html" class="nav-link">Alerts</a>
+      <a href="/status.html" class="nav-link">Status</a>
+      <span class="nav-link" style="color: var(--cyan)">Pipeline</span>
+    </div>
+  </div>
+</nav>
+
+<div class="page-content">
+  <div class="stream-wrap">
+
+    <div class="stream-header">
+      <div class="stream-title-block">
+        <h1>Rescue pipeline — live telemetry</h1>
+        <div class="stream-sub">Candidate feed → Weighted scoring → Backorder queue</div>
+      </div>
+      <div class="live-pill">Live</div>
+    </div>
+
+    <div class="pipeline">
+
+      <!-- Column 1: Candidate Feed -->
+      <div class="col col--feed">
+        <div class="col-header">
+          <div class="col-label">01 · Candidate feed</div>
+          <div class="col-counter"><span id="feed-count">0</span> / sec</div>
+        </div>
+        <div class="col-body">
+          <div class="col-scroll" id="feed-scroll"></div>
+        </div>
+      </div>
+
+      <!-- Column 2: Scoring Filter -->
+      <div class="col col--filter">
+        <div class="col-header">
+          <div class="col-label">02 · Weighted scoring</div>
+          <div class="col-counter">threshold <span>75</span></div>
+        </div>
+        <div class="col-body">
+          <div class="col-scroll" id="filter-scroll"></div>
+        </div>
+      </div>
+
+      <!-- Column 3: Caught -->
+      <div class="col col--caught">
+        <div class="col-header">
+          <div class="col-label">03 · Caught &amp; held</div>
+          <div class="col-counter"><span id="caught-count">0</span> rescued today</div>
+        </div>
+        <div class="col-body">
+          <div class="col-scroll" id="caught-scroll"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Funnel strip -->
+    <div class="funnel">
+      <div class="funnel-step">
+        <div class="funnel-num cyan" id="f-scanned">0</div>
+        <div class="funnel-label">Scanned</div>
+      </div>
+      <div class="funnel-arrow">→</div>
+      <div class="funnel-step">
+        <div class="funnel-num violet" id="f-scored">0</div>
+        <div class="funnel-label">Scored ≥ 75</div>
+      </div>
+      <div class="funnel-arrow">→</div>
+      <div class="funnel-step">
+        <div class="funnel-num green" id="f-caught">0</div>
+        <div class="funnel-label">Backordered</div>
+      </div>
+      <div class="funnel-arrow">→</div>
+      <div class="funnel-step">
+        <div class="funnel-num amber" id="f-visited">0</div>
+        <div class="funnel-label">Visitors reached</div>
+      </div>
+      <div class="funnel-arrow">→</div>
+      <div class="funnel-step">
+        <div class="funnel-num pink" id="f-paid">0</div>
+        <div class="funnel-label">Rescued</div>
+      </div>
+      <div class="funnel-rate">
+        <div class="rate-num" id="f-conversion">—</div>
+        <div class="rate-label">Scan → Rescue</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ============================================================
+// LIVE PIPELINE SIMULATION
+// Mocks real scoring + pipeline data for demo purposes.
+// Backed by same scoring logic as worker/src/services/prospecting.ts.
+// ============================================================
+
+const SERVICE_WORDS = ['plumbing','dental','dentist','law','clinic','auto','bakery','yoga','salon','realty','homes','electric','roofing','hvac','tax','cpa','insurance','physio','vet','pediatric'];
+const SEO_PREFIXES = ['the','best','top','local','my'];
+const POISON_WORDS = ['xyz','123','test','demo','lorem','abc'];
+const REGISTRARS = ['GoDaddy', 'Namecheap', 'Dynadot', 'Squarespace', 'Cloudflare', 'Porkbun', 'Network Solutions'];
+
+const FIRST_WORDS = ['schwartz','miller','davidson','chen','rodriguez','bright','prairie','hilltop','riverside','valley','summit','harbor','oak','maple','stone','cedar','bay','creek','ridge','grove'];
+const POOR_FIRST = ['shop4u','best-','click-','top10','the-','cheap-','my-'];
+
+function generateDomain() {
+  const poor = Math.random() < 0.35;
+  if (poor) {
+    const prefix = POOR_FIRST[Math.floor(Math.random() * POOR_FIRST.length)];
+    const tail = POISON_WORDS[Math.floor(Math.random() * POISON_WORDS.length)];
+    return prefix + tail + '.com';
+  }
+  const first = FIRST_WORDS[Math.floor(Math.random() * FIRST_WORDS.length)];
+  const service = SERVICE_WORDS[Math.floor(Math.random() * SERVICE_WORDS.length)];
+  const extras = ['', '-', ''];
+  const sep = extras[Math.floor(Math.random() * extras.length)];
+  return first + sep + service + '.com';
+}
+
+function scoreDomain(domain) {
+  const core = domain.replace(/\.com$/, '').toLowerCase();
+  const signals = [];
+  let score = 40; // baseline
+
+  // Service word present
+  const svc = SERVICE_WORDS.find(w => core.includes(w));
+  if (svc) { score += 25; signals.push({ label: '+service', tone: 'pos' }); }
+
+  // Length sweet spot
+  const len = core.replace('-','').length;
+  if (len >= 6 && len <= 18) { score += 12; signals.push({ label: '+length', tone: 'pos' }); }
+  else if (len > 22) { score -= 10; signals.push({ label: '-long', tone: 'neg' }); }
+
+  // No hyphen bonus
+  if (!core.includes('-')) { score += 8; signals.push({ label: '+clean', tone: 'pos' }); }
+  else { score -= 6; signals.push({ label: '-hyphen', tone: 'neg' }); }
+
+  // SEO prefix penalty
+  if (SEO_PREFIXES.some(p => core.startsWith(p))) { score -= 15; signals.push({ label: '-seo', tone: 'neg' }); }
+
+  // Poison word penalty
+  if (POISON_WORDS.some(p => core.includes(p))) { score -= 30; signals.push({ label: '-poison', tone: 'neg' }); }
+
+  // Brandable single-word
+  if (!core.includes('-') && !svc && len >= 5 && len <= 10) { score += 10; signals.push({ label: '+brand', tone: 'pos' }); }
+
+  // Local geo implied
+  if (['bay','harbor','summit','creek','ridge','valley','grove','prairie','hilltop','riverside'].some(g => core.includes(g))) {
+    score += 6; signals.push({ label: '+geo', tone: 'pos' });
+  }
+
+  score = Math.max(10, Math.min(98, score + Math.floor(Math.random() * 8 - 4)));
+  return { score, signals };
+}
+
+// Rotating stats
+const stats = {
+  scanned: 0,
+  scored: 0,
+  caught: 0,
+  visited: 0,
+  paid: 0,
+  perSec: 0,
+  lastSecondCount: 0,
+};
+
+const MAX_CARDS = 7;
+
+function pruneColumn(id) {
+  const el = document.getElementById(id);
+  while (el.children.length > MAX_CARDS) {
+    el.removeChild(el.lastElementChild);
+  }
+}
+
+function fmtDomain(d) {
+  // Show a dim TLD color treatment
+  const parts = d.split('.');
+  return `${parts[0]}<span style="color:var(--text-faint)">.${parts.slice(1).join('.')}</span>`;
+}
+
+function emitFeed() {
+  const domain = generateDomain();
+  const registrar = REGISTRARS[Math.floor(Math.random() * REGISTRARS.length)];
+  const days = Math.floor(Math.random() * 30);
+  const daysClass = days <= 3 ? 'critical' : days <= 10 ? 'urgent' : '';
+
+  const card = document.createElement('div');
+  card.className = 'feed-card';
+  card.innerHTML = `
+    <div class="feed-domain">${fmtDomain(domain)}</div>
+    <div class="feed-meta">
+      <span class="reg">${registrar}</span>
+      <span class="days ${daysClass}">expires in ${days}d</span>
+    </div>
+  `;
+  const feed = document.getElementById('feed-scroll');
+  feed.insertBefore(card, feed.firstChild);
+  pruneColumn('feed-scroll');
+
+  stats.scanned++;
+  stats.lastSecondCount++;
+
+  // Advance to filter after short delay
+  setTimeout(() => {
+    emitFilter(domain);
+  }, 350 + Math.random() * 400);
+}
+
+function emitFilter(domain) {
+  const { score, signals } = scoreDomain(domain);
+  const kept = score >= 75;
+  const card = document.createElement('div');
+  card.className = 'filter-card ' + (kept ? 'kept' : 'rejected');
+
+  const chipsHtml = signals.slice(0, 5).map(s =>
+    `<span class="signal-chip ${s.tone}">${s.label}</span>`
+  ).join('');
+
+  card.innerHTML = `
+    <div class="filter-top">
+      <div class="filter-domain">${fmtDomain(domain)}</div>
+      <div class="filter-score ${kept ? 'kept' : 'rejected'}">${score}</div>
+    </div>
+    <div class="filter-signals">${chipsHtml}</div>
+    <div class="filter-bar"><div class="filter-bar-fill ${kept ? 'kept' : 'rejected'}" style="width: 0%"></div></div>
+    <div class="filter-verdict">
+      <span class="${kept ? 'verdict-kept' : 'verdict-rejected'}">${kept ? '→ backorder' : '× reject'}</span>
+      <span class="threshold-note">score · threshold 75</span>
+    </div>
+  `;
+  const scroll = document.getElementById('filter-scroll');
+  scroll.insertBefore(card, scroll.firstChild);
+  pruneColumn('filter-scroll');
+
+  // Animate bar fill
+  requestAnimationFrame(() => {
+    const bar = card.querySelector('.filter-bar-fill');
+    bar.style.width = Math.min(100, score) + '%';
+  });
+
+  if (kept) {
+    stats.scored++;
+    setTimeout(() => emitCaught(domain, score), 600 + Math.random() * 400);
+  }
+}
+
+function emitCaught(domain, score) {
+  const costs = [8, 10, 12, 10, 9, 11];
+  const cost = costs[Math.floor(Math.random() * costs.length)];
+  const card = document.createElement('div');
+  card.className = 'caught-card';
+  card.innerHTML = `
+    <div class="caught-top">
+      <div class="caught-domain">${fmtDomain(domain)}</div>
+      <div class="caught-badge">● held</div>
+    </div>
+    <div class="caught-meta">
+      <div>score<strong>${score}</strong></div>
+      <div>catch cost<strong>$${cost}</strong></div>
+      <div>rescue price<strong>$299</strong></div>
+    </div>
+  `;
+  const scroll = document.getElementById('caught-scroll');
+  scroll.insertBefore(card, scroll.firstChild);
+  pruneColumn('caught-scroll');
+
+  stats.caught++;
+
+  // Mock downstream funnel events
+  if (Math.random() < 0.7) {
+    setTimeout(() => { stats.visited++; updateFunnel(); }, 1500 + Math.random() * 2000);
+    if (Math.random() < 0.55) {
+      setTimeout(() => { stats.paid++; updateFunnel(); }, 3500 + Math.random() * 2500);
+    }
+  }
+
+  updateFunnel();
+}
+
+function updateFunnel() {
+  document.getElementById('f-scanned').textContent = stats.scanned.toLocaleString();
+  document.getElementById('f-scored').textContent = stats.scored.toLocaleString();
+  document.getElementById('f-caught').textContent = stats.caught.toLocaleString();
+  document.getElementById('f-visited').textContent = stats.visited.toLocaleString();
+  document.getElementById('f-paid').textContent = stats.paid.toLocaleString();
+  document.getElementById('caught-count').textContent = stats.caught.toLocaleString();
+
+  if (stats.scanned > 20) {
+    const rate = ((stats.paid / stats.scanned) * 100).toFixed(2);
+    document.getElementById('f-conversion').textContent = rate + '%';
+  }
+}
+
+// Per-second feed rate indicator
+setInterval(() => {
+  document.getElementById('feed-count').textContent = stats.lastSecondCount;
+  stats.lastSecondCount = 0;
+}, 1000);
+
+// Main loop — emit candidate every 500-900ms for a calm, legible rhythm
+function loop() {
+  emitFeed();
+  const nextDelay = 500 + Math.random() * 400;
+  setTimeout(loop, nextDelay);
+}
+
+// Warm up: emit a few quickly, then settle
+setTimeout(() => { emitFeed(); }, 200);
+setTimeout(() => { emitFeed(); }, 600);
+setTimeout(() => { emitFeed(); }, 1100);
+setTimeout(loop, 1700);
+</script>
+
+</body>
+</html>

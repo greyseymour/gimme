@@ -8,7 +8,7 @@ const rescue = new Hono<{ Bindings: Bindings }>();
 
 // POST /rescue/claim — start Stripe checkout
 rescue.post('/claim', async (c) => {
-  let body: { domain?: string; email?: string; registrar_handle?: string; plan?: string };
+  let body: { domain?: string; email?: string; registrar_handle?: string };
   try {
     body = await c.req.json();
   } catch {
@@ -17,7 +17,6 @@ rescue.post('/claim', async (c) => {
 
   const domain = (body.domain ?? '').trim().toLowerCase();
   const email = (body.email ?? '').trim().toLowerCase();
-  const plan = body.plan === 'concierge' ? 'concierge' : 'self';
 
   if (!domain || !domain.includes('.')) return c.json({ error: 'Invalid domain' }, 400);
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -28,13 +27,13 @@ rescue.post('/claim', async (c) => {
   const caught = await c.env.DB
     .prepare('SELECT * FROM caught_domains WHERE domain = ? AND status = ?')
     .bind(domain, 'holding')
-    .first<{ rescue_price_usd: number; concierge_price_usd: number; claim_window_closes: string }>();
+    .first<{ rescue_price_usd: number; claim_window_closes: string }>();
 
   if (!caught) {
     return c.json({ error: 'Domain not found in our custody — please email rescue@gimme.domains' }, 404);
   }
 
-  const amountUsd = plan === 'concierge' ? caught.concierge_price_usd : caught.rescue_price_usd;
+  const amountUsd = caught.rescue_price_usd;
   const claimId = `clm_${crypto.randomUUID().replace(/-/g, '').slice(0, 14)}`;
 
   // Create DB record before Stripe (idempotency)
@@ -43,7 +42,7 @@ rescue.post('/claim', async (c) => {
       INSERT INTO claims (id, domain, email, registrar_handle, plan, amount_usd, payment_status, transfer_status)
       VALUES (?, ?, ?, ?, ?, ?, 'pending', 'pending')
     `)
-    .bind(claimId, domain, email, body.registrar_handle ?? null, plan, amountUsd)
+    .bind(claimId, domain, email, body.registrar_handle ?? null, 'self', amountUsd)
     .run();
 
   if (!c.env.STRIPE_SECRET_KEY) {
@@ -63,7 +62,7 @@ rescue.post('/claim', async (c) => {
       domain,
       email,
       claimId,
-      plan,
+      plan: 'self',
       frontendUrl: c.env.FRONTEND_URL,
     });
 
@@ -131,7 +130,6 @@ rescue.post('/webhook', async (c) => {
     const meta = event.data.object.metadata ?? {};
     const claimId = meta.claim_id;
     const domain = meta.domain;
-    const plan = meta.plan ?? 'self';
     const email = event.data.object.customer_email ?? '';
 
     if (claimId && domain) {
@@ -149,7 +147,7 @@ rescue.post('/webhook', async (c) => {
 
       // Kick off transfer + email (non-blocking)
       c.executionCtx.waitUntil(
-        handlePostPayment(c.env, domain, email, claimId, plan)
+        handlePostPayment(c.env, domain, email, claimId)
       );
     }
   }
@@ -162,9 +160,7 @@ async function handlePostPayment(
   domain: string,
   email: string,
   claimId: string,
-  plan: string
 ): Promise<void> {
-  // Initiate transfer-out from Dynadot
   if (env.DYNADOT_API_KEY) {
     const transfer = await initiateTransferOut(env.DYNADOT_API_KEY, domain, email);
     if (transfer.success) {
@@ -175,12 +171,11 @@ async function handlePostPayment(
     }
   }
 
-  // Send confirmation email
   if (env.RESEND_API_KEY && email) {
     await sendEmail(env.RESEND_API_KEY, {
       to: email,
       subject: `${domain} — transfer started! Gimme.domains`,
-      html: claimConfirmationEmail(domain, plan, claimId),
+      html: claimConfirmationEmail(domain, 'self', claimId),
     });
   }
 }

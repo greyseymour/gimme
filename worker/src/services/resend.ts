@@ -61,7 +61,7 @@ export function rescueNotificationEmail(domain: string, claimWindowCloses: strin
     <p style="margin:0 0 4px;font-size:13px;color:#666;font-family:monospace;letter-spacing:0.08em">CLAIM WINDOW CLOSES</p>
     <p style="margin:0;font-size:18px;font-weight:700;color:#ffbe0b">${claimWindowCloses}</p>
   </div>
-  <a href="${rescueUrl}" style="display:inline-block;background:linear-gradient(135deg,#7928ca,#00d4ff);color:#fff;padding:14px 28px;border-radius:10px;text-decoration:none;font-weight:600;font-size:15px">Reclaim My Domain — $249</a>
+  <a href="${rescueUrl}" style="display:inline-block;background:linear-gradient(135deg,#7928ca,#00d4ff);color:#fff;padding:14px 28px;border-radius:10px;text-decoration:none;font-weight:600;font-size:15px">Reclaim My Domain — $299</a>
   <hr style="border:none;border-top:1px solid rgba(255,255,255,0.06);margin:32px 0"/>
   <p style="font-size:12px;color:#555">Gimme.domains — we're on your side. Questions? Reply to this email.</p>
 </div></body></html>`;

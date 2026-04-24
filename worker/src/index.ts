@@ -4,6 +4,7 @@ import { logger } from 'hono/logger';
 import domainRoutes from './routes/domain';
 import alertRoutes from './routes/alerts';
 import rescueRoutes from './routes/rescue';
+import chatRoutes from './routes/chat';
 import { lookupDomain } from './services/rdap';
 import { sendEmail, alertEmail, rescueNotificationEmail } from './services/resend';
 import { placeBackorder, setRescueForwarding } from './services/dynadot';
@@ -20,6 +21,7 @@ export type Bindings = {
   RESEND_API_KEY: string;
   DYNADOT_API_KEY: string;
   ESTIBOT_API_KEY: string;
+  ANTHROPIC_API_KEY: string;
   // Vars (set in wrangler.toml)
   FRONTEND_URL: string;
   CLAIM_WINDOW_DAYS: string;
@@ -44,6 +46,7 @@ app.use('/v1/*', cors({
 app.route('/v1/domain', domainRoutes);
 app.route('/v1/alerts', alertRoutes);
 app.route('/v1/rescue', rescueRoutes);
+app.route('/v1/chat', chatRoutes);
 
 // Health check
 app.get('/', (c) => c.json({ status: 'ok', service: 'gimme-worker' }));
@@ -210,8 +213,8 @@ async function markAsCaught(env: Bindings, domain: string): Promise<void> {
   await env.DB
     .prepare(`
       INSERT OR IGNORE INTO caught_domains
-        (domain, caught_at, catch_registrar, cost_usd, claim_window_closes, rescue_price_usd, concierge_price_usd, status)
-      VALUES (?, datetime('now'), 'dynadot', 10, ?, ?, 499, 'holding')
+        (domain, caught_at, catch_registrar, cost_usd, claim_window_closes, rescue_price_usd, status)
+      VALUES (?, datetime('now'), 'dynadot', 10, ?, ?, 'holding')
     `)
     .bind(domain, claimWindowCloses, rescuePrice)
     .run();

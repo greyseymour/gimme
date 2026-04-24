@@ -157,7 +157,7 @@
           </div>
           <div class="meta-item">
             <div class="meta-key">Rescue fee</div>
-            <div class="meta-val" id="caught-price">$249</div>
+            <div class="meta-val" id="caught-price">$299</div>
           </div>
           <div class="meta-item">
             <div class="meta-key">Transfer ETA</div>
@@ -170,7 +170,7 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </a>
         <p style="text-align:center;font-size:var(--text-xs);color:var(--text-faint)">
-          Need hands-on help? <a href="rescued.html" style="color:var(--text-muted);text-decoration:underline;text-underline-offset:3px">White-glove rescue ($499)</a> includes DNS, email, and live support.
+          One flat $299 fee. DNS, email, and lifetime monitoring bundled — no upsells.
         </p>
       </div>
     </div>
@@ -348,7 +348,7 @@
       document.getElementById('caught-window').textContent = fmt(d.claim_window_closes);
       document.getElementById('caught-claim-closes').textContent = fmt(d.claim_window_closes);
       document.getElementById('caught-price').textContent =
-        d.rescue_price_usd ? `$${d.rescue_price_usd}` : '$249';
+        d.rescue_price_usd ? `$${d.rescue_price_usd}` : '$299';
       const cta = document.getElementById('caught-cta');
       cta.href = `rescued.html?domain=${encodeURIComponent(domain)}`;
       show('caught');
